@@ -1,0 +1,15 @@
+{
+  "name": "VocalTimeCounter",
+  "version": "1.0.0",
+  "main": "./src/main.js",
+  "repository": "https://github.com/Pixilie/VocalTimeCounter",
+  "author": "Kristen <pixilietv@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  }
+}
