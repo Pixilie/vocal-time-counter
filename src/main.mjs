@@ -1,10 +1,10 @@
 import "dotenv/config"
 import { REST, Routes, time } from 'discord.js';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { newUser, getUser,  updateUser } from './database.js';
-import * as pingCommand from './commands/ping.js';
-import * as timeCommand from './commands/time.js';
-import * as leaderboardCommand from './commands/leaderboard.js';
+import { newUser, getUser,  updateUser } from './database.mjs';
+import * as pingCommand from './commands/ping.mjs';
+import * as timeCommand from './commands/time.mjs';
+import * as leaderboardCommand from './commands/leaderboard.mjs';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 

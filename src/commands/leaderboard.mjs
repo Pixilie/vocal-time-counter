@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { getUser } from '../database.js';
+import { getUser } from '../database.mjs';
 import { EmbedBuilder } from 'discord.js';
 
 function roundDecimal(int, precision){

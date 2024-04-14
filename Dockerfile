@@ -1,11 +1,13 @@
 FROM node:alpine
 
-WORKDIR /usr/src/app
+WORKDIR ./
 
-COPY package*.json yarn.lock ./
+COPY package.json ./
 
 RUN yarn install
 
 COPY . .
 
-CMD ["node", "./src/index.js"]
+RUN npx prisma generate
+
+CMD ["node", "./src/main.mjs"]
