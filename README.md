@@ -24,5 +24,5 @@ TOKEN=your_bot_token
 CLIENT_ID=your_bot_id
 ```
 - Install docker
-- Open a terminal in the bot's directory and run ``docker build . 't vocaltime``
-- Run ``docker run -d --rm vocaltime``
+- Open a terminal in the bot's directory and run ``sudo docker build . 't vocaltime``
+- Run ``sudo docker run -d --rm vocaltime``
