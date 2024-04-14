@@ -1,14 +1,17 @@
 import "dotenv/config"
-import { REST, Routes } from 'discord.js';
+import { REST, Routes, time } from 'discord.js';
 import { Client, GatewayIntentBits } from 'discord.js';
-import  * as ping from './commands/ping.js';
-import * as vocalCheck from './vocalCheck.js';
 import { newUser, getUser,  updateUser } from './database.js';
+import * as pingCommand from './commands/ping.js';
+import * as timeCommand from './commands/time.js';
+import * as leaderboardCommand from './commands/leaderboard.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 
 const commands = [
-    ping.COMMAND_DEFINITION
+    pingCommand.COMMAND_DEFINITION,
+    timeCommand.COMMAND_DEFINITION,
+    leaderboardCommand.COMMAND_DEFINITION
 ].map((command) => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
@@ -25,7 +28,6 @@ try {
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
-    vocalCheck.fetchVoiceChannels();
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -33,8 +35,14 @@ client.on('interactionCreate', async (interaction) => {
 
 	switch (interaction.commandName) {
 		case 'ping':
-			ping.run(interaction);
+			pingCommand.run(interaction);
 			break;
+        case 'time':
+            timeCommand.run(interaction);
+            break;
+        case 'leaderboard':
+            leaderboardCommand.run(interaction);
+            break;
 		default:
 			break;
 	}
@@ -47,20 +55,20 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         const discordUser = oldState.member.user.username;
         const lastLeft = new Date().getTime() / 1000;
 
-        Promise.all([getUser(discordUser).lastjoined, getUser(discordUser).time]) .then((values) => {
-            updateUser(discordUser, values[0], values[1] + (lastLeft - values[0]));   
+        Promise.all([getUser(discordUser)]) .then((values) => {
+            updateUser(discordUser, lastLeft, parseInt(values[0].time) + parseInt((lastLeft - parseInt(values[0].lastjoined)/1000)));   
         });
 
     } else {
 
         const discordUser = newState.member.user.username;
-        const lastJoined = new Date().getTime() / 1000;
+        const lastJoined = new Date().getTime();
 
         Promise.all([getUser(discordUser)]).then((values) => {
             if (values[0] === null) {
                 newUser(discordUser, lastJoined);
             } else {
-                updateUser(discordUser, lastJoined, null);
+                updateUser(discordUser, lastJoined, 0);
             }
         });
     }

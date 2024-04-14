@@ -12,7 +12,16 @@ async function newUser(discordname, lastJoined, time=0) {
     })
 }
 
-async function getUser(discordname) {
+async function getUser(discordname=null) {
+    if (discordname === null) {
+        const users = await prisma.user.findMany(
+            {orderBy: {
+                time: 'desc'
+            }
+        }
+        )
+        return users
+    } 
     const user = await prisma.user.findUnique({
         where: {
             discordname: discordname
@@ -22,7 +31,7 @@ async function getUser(discordname) {
 }
 
 async function updateUser(discordName, lastJoined, time) {
-    if (time === null) {
+    if (time === 0) {
         await prisma.user.update({
             where: {
                 discordname: discordName

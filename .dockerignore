@@ -1,6 +1,7 @@
 node_modules
-.env
-yarn.lock
+LICENSE
+.gitignore
+README.md
 .eslintrc.json
+.git
 .vscode
-prisma/database.db
