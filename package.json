@@ -1,6 +1,6 @@
 {
   "name": "VocalTimeCounter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "./src/main.mjs",
   "repository": "https://github.com/Pixilie/VocalTimeCounter",
   "author": "Kristen <pixilietv@gmail.com>",

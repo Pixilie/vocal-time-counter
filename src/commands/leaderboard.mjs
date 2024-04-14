@@ -29,9 +29,32 @@ async function getLeaderboard(interaction) {
     .setTimestamp()
     .addFields(
         users.map((user, index) => {
+
+            const hours = Math.floor(parseInt(user.time)/3600);
+            const minutes = Math.floor((parseInt(user.time)%3600)/60);
+            const seconds = parseInt(user.time)%60;
+            let time = "";
+
+            if (hours === 0) {
+                time = minutes + 'min ' + seconds + 'sec';
+            } else {
+                time = hours + 'h ' + minutes + 'min ' + seconds + 'sec';
+            }
+
+            const avgHours = Math.floor(parseInt(user.time)/3600/difference);
+            const avgMinutes = Math.floor((parseInt(user.time)%3600/difference)/60);
+            const avgSeconds = (parseInt(user.time)/difference)%60;
+            let avgTime = "";
+
+            if (avgHours === 0) {
+                avgTime = avgMinutes + 'min ' + avgSeconds + 'sec';
+            } else {
+                avgTime = avgHours + 'h ' + avgMinutes + 'min ' + avgSeconds + 'sec';
+            }
+
             return {
                 name: `${index+1}. ${user.discordname}`,
-                value: `${roundDecimal(parseInt(user.time)/3600, 2)} hours - Average: ${roundDecimal(parseInt(user.time)/3600, 2)/difference} hour(s)/day`
+                value: time + ' (' + avgTime + '/day)'
             }
         })
     )
