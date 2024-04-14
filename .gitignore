@@ -1,6 +1,5 @@
 node_modules
 .env
-yarn.lock
 .eslintrc.json
 .vscode
 prisma/database.db
