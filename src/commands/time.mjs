@@ -13,7 +13,7 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
     .setDescription('Replies with the time you have spent in voice channels!');
 
 async function getTime(interaction) {
-    const startDate = 1713086240054;
+    const startDate = parseInt(process.env.START_DATE)*1000;
     const discordUser = interaction.user.username;
     const databaseUser = await getUser(discordUser);
 
@@ -53,7 +53,7 @@ async function getTime(interaction) {
 
     const timeCommand = new EmbedBuilder()
     .setColor('#0099ff')
-    .setTitle('Time spent in voice channels')
+    .setTitle(`${discordUser}'s stats`)
     .setTimestamp()
     .setThumbnail(interaction.user.avatarURL())
     .addFields(

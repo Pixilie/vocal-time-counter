@@ -22,6 +22,7 @@ The .env file should look like this:
 ```env
 TOKEN=your_bot_token
 CLIENT_ID=your_bot_id
+START_DATE=timestamp_when_the_bot_was_added_to_your_server # Use to calculate the average time spent in voice channels
 ```
 - Install docker
 - Open a terminal in the bot's directory and run ``sudo docker build . -t vocaltime``

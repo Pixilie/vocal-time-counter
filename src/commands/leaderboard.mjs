@@ -16,7 +16,7 @@ async function getLeaderboard(interaction) {
     const users = await getUser();
 
     const date = new Date();
-    const startDate = 1713086240054;
+    const startDate = parseInt(process.env.START_DATE)*1000;
     let difference = Math.round((date.getTime() - startDate)/(1000*3600*24))
     if (difference === 0) {
         difference = 1;
@@ -24,7 +24,7 @@ async function getLeaderboard(interaction) {
 
     const leaderboardEmbed = new EmbedBuilder()
     .setColor('#0099ff')
-    .setTitle('Leaderboard of time spent in voice channels')
+    .setTitle(`${interaction.guild.name}'s leaderboard`)
     .setThumbnail(interaction.guild.iconURL())
     .setTimestamp()
     .addFields(
