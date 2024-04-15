@@ -17,17 +17,20 @@ const commands = [
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 try {
-  console.log('Started refreshing application (/) commands.');
+    console.log('Started refreshing application (/) commands.');
+    logtail.info('Started refreshing application (/) commands.');
 
-  await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
 
-  console.log('Successfully reloaded application (/) commands.');
+    console.log('Successfully reloaded application (/) commands.');
+    logtail.info('Successfully reloaded application (/) commands.');
 } catch (error) {
   logtail.error(error);
 }
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    logtail.info(`Logged in as ${client.user.tag}!`);
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -83,7 +86,4 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 });
 
-
 client.login(process.env.TOKEN);
-
-export { client };
