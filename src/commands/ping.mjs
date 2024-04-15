@@ -1,4 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
+import { Logtail } from "@logtail/node";
+
+const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
     .setName('ping')
@@ -9,7 +12,12 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
  * @param {object} interaction Interaction object
  */
 async function run(interaction) {
-    await interaction.reply(`Latency is ${Date.now() - interaction.createdTimestamp}ms.`);
+    try {
+        await interaction.reply(`Latency is ${Date.now() - interaction.createdTimestamp}ms.`);
+    } catch (error) {
+        logtail.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
 }
 
 export { COMMAND_DEFINITION, run };
