@@ -1,27 +1,27 @@
 import "dotenv/config"
-import { REST, Routes, time } from 'discord.js';
+import { Guild, REST, Routes } from 'discord.js';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { newUser, getUser,  updateUser } from './database.mjs';
+import { Logtail } from "@logtail/node";
+import { onLeft, onJoin, onMuteDeafen } from './helpers.mjs';
 import * as pingCommand from './commands/ping.mjs';
 import * as timeCommand from './commands/time.mjs';
 import * as leaderboardCommand from './commands/leaderboard.mjs';
-import { Logtail } from "@logtail/node";
+import * as deleteCommand from './commands/delete.mjs';
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 const commands = [
     pingCommand.COMMAND_DEFINITION,
     timeCommand.COMMAND_DEFINITION,
-    leaderboardCommand.COMMAND_DEFINITION
+    leaderboardCommand.COMMAND_DEFINITION,
+    deleteCommand.COMMAND_DEFINITION
 ].map((command) => command.toJSON());
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 try {
     console.log('Started refreshing application (/) commands.');
     logtail.info('Started refreshing application (/) commands.');
-
     await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
-
     console.log('Successfully reloaded application (/) commands.');
     logtail.info('Successfully reloaded application (/) commands.');
 } catch (error) {
@@ -46,44 +46,56 @@ client.on('interactionCreate', async (interaction) => {
         case 'leaderboard':
             leaderboardCommand.run(interaction);
             break;
+        case 'delete':
+            deleteCommand.run(interaction);
+            break;
 		default:
 			break;
 	}
 });
 
 client.on('voiceStateUpdate', (oldState, newState) => {
-
     if (newState.channelId === null) {
-        try {
-            const discordUser = oldState.member.user.username;
-            const lastLeft = new Date().getTime() / 1000;
-
-            Promise.all([getUser(discordUser)]) .then((values) => {
-                updateUser(discordUser, lastLeft, parseInt(values[0].time) + parseInt((lastLeft - parseInt(values[0].lastjoined)/1000)));   
-            });
-        } catch (error) {
-            logtail.error(error);
+        if (oldState.channelId !== oldState.guild.afkChannelId) {
+            if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
+                return;
+            } else {
+                onLeft(oldState);
+            }
+        } else {
+            return;
         }
-
     } else if (oldState.channelId === null){
-        try {
-            const discordUser = newState.member.user.username;
-            const lastJoined = new Date().getTime();
-
-            Promise.all([getUser(discordUser)]).then((values) => {
-                if (values[0] === null) {
-                    newUser(discordUser, lastJoined);
-                } else {
-                    updateUser(discordUser, lastJoined, 0);
-                }
-            });
-        } catch (error) {
-            logtail.error(error);
+        if (newState.channelId !== newState.guild.afkChannelId) {
+            if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
+                return;
+            } else {
+                onJoin(newState);
+            }
+        } else {
+            return;
         }
     } else {
-        logtail.warn("Untracked voice state change detected.");
+        if (oldState.channelId !== newState.channelId) {
+            if (newState.channelId === newState.guild.afkChannelId) {
+                onLeft(oldState);
+            } else {
+                return;
+            }
+        }
+        else if (oldState.serverDeaf !== newState.serverDeaf || oldState.serverMute !== newState.serverMute || oldState.selfDeaf !== newState.selfDeaf || oldState.selfMute !== newState.selfMute) {
+            onMuteDeafen(newState, oldState);
+        }
+        else if (oldState.selfVideo !== newState.selfVideo) {
+            console.log("Self video");
+        }
+        else if (oldState.streaming !== newState.streaming) {
+            console.log("Streaming");
+        }
+        else {
+            logtail.warn("Untracked voice state change detected.");
+        }
     }
-
 });
 
 client.login(process.env.TOKEN);

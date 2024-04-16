@@ -30,8 +30,8 @@ async function getUser(discordname=null) {
     return user
 }
 
-async function updateUser(discordName, lastJoined, time) {
-    if (time === 0) {
+async function updateUser(discordName, lastJoined, time=null) {
+    if (time === null) {
         await prisma.user.update({
             where: {
                 discordname: discordName
@@ -40,7 +40,8 @@ async function updateUser(discordName, lastJoined, time) {
                 lastjoined: lastJoined
             }
         })
-    } else {
+    }
+    else {
         await prisma.user.update({
             where: {
                 discordname: discordName
@@ -52,4 +53,17 @@ async function updateUser(discordName, lastJoined, time) {
     }
 }
 
-export { newUser, getUser, updateUser }
+async function deleteUser(discordName=null) {
+    if (discordName === null) {
+        await prisma.user.deleteMany()
+    }
+    else {
+        await prisma.user.delete({
+            where: {
+                discordname: discordName
+            }
+        })
+    }
+}
+
+export { newUser, getUser, updateUser, deleteUser}

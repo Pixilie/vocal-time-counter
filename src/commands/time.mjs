@@ -5,12 +5,6 @@ import { Logtail } from "@logtail/node";
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
-function roundDecimal(int, precision){
-    var precision = precision || 2;
-    var tmp = Math.pow(10, precision);
-    return Math.round( int*tmp )/tmp;
-}
-
 let COMMAND_DEFINITION = new SlashCommandBuilder()
     .setName('time')
     .setDescription('Replies with the time you have spent in voice channels!');
@@ -86,8 +80,9 @@ async function run(interaction) {
     if (response === null) {
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
         return;
+    } else {
+        await interaction.reply(response);
     }
-    await interaction.reply(response);
 }
 
 export { COMMAND_DEFINITION, run }
