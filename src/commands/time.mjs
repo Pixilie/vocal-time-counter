@@ -82,6 +82,7 @@ async function run(interaction) {
         return;
     } else {
         await interaction.reply(response);
+        logtail.info(`Time command executed by ${interaction.user.username}`);
     }
 }
 

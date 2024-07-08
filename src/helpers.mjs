@@ -7,6 +7,7 @@ async function onLeft(oldState) {
     try {
         const discordUser = oldState.member.user.username;
         const lastLeft = new Date().getTime() / 1000;
+        logtail.info(`${discordUser} left`);
 
         const databaseUser = await getUser(discordUser);
         const time = parseInt(databaseUser.time) + parseInt((lastLeft - parseInt(databaseUser.lastjoined)/1000))
@@ -21,6 +22,7 @@ async function onJoin(newState) {
     try {
         const discordUser = newState.member.user.username;
         const lastJoined = new Date().getTime();
+        logtail.info(`${discordUser} joined`);
 
         const databaseUser = await getUser(discordUser);
         if (databaseUser === null) {
@@ -41,12 +43,12 @@ async function onMuteDeafen(newState, oldState) {
             const databaseUser = await getUser(discordUser);
             const time = parseInt(databaseUser.time) + parseInt((lastLeft - parseInt(databaseUser.lastjoined)/1000))
             await updateUser(discordUser, lastLeft, time);
-            console.log('User muted or deafened');
+            logtail.info(`${discordUser} muted or deafened`);
         } else if (oldState.serverMute || oldState.serverDeafen || oldState.selfMute || oldState.selfDeafen) {
             const discordUser = oldState.member.user.username;
             const lastJoined = new Date().getTime();
             await updateUser(discordUser, lastJoined);
-            console.log('User unmuted or undeafened');
+            logtail.info(`${discordUser} unmuted or undeafened`);
         }
 
     } catch (error) {
