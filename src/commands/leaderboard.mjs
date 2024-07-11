@@ -41,7 +41,7 @@ async function getLeaderboard(interaction) {
 
                 const avgHours = Math.floor(parseInt(user.time)/3600/difference);
                 const avgMinutes = Math.floor((parseInt(user.time)%3600/difference)/60);
-                const avgSeconds = (parseInt(user.time)/difference)%60;
+                const avgSeconds = Math.floor((parseInt(user.time)/difference)%60);
                 let avgTime = "";
 
                 if (avgHours === 0) {
