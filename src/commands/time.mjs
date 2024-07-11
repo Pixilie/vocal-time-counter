@@ -40,7 +40,7 @@ async function getTime(interaction) {
 
         const avgHours = Math.floor(parseInt(databaseUser.time)/3600/difference);
         const avgMinutes = Math.floor((parseInt(databaseUser.time)%3600/difference)/60);
-        const avgSeconds = (parseInt(databaseUser.time)/difference)%60;
+        const avgSeconds = Math.floor((parseInt(databaseUser.time)/difference)%60);
         let avgTime = "";
 
         if (avgHours === 0) {
@@ -60,6 +60,7 @@ async function getTime(interaction) {
                 value: time
             },
             {
+                TODO: 'Add the last time the user left a voice channel instead of the last time they joined one.',
                 name: `Last time ${discordUser} joined a voice channel`,
                 value: 'On ' + lastJoined.getDate() + '/' + lastJoined.getMonth() + '/' + lastJoined.getFullYear() + ' at ' + lastJoined.getHours() + ':' + lastJoined.getMinutes()
             },
