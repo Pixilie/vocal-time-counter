@@ -5,3 +5,4 @@ node_modules
 prisma/*.db
 yarn.lock
 win.yml
+bun.lockb
