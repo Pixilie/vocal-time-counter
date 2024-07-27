@@ -21,9 +21,7 @@ async function getTime(interaction) {
 
     const lastJoined = new Date(databaseUser.lastjoined * 1000);
     const date = new Date();
-    let difference = Math.round(
-      (date.getTime() - startDate) / (1000 * 3600 * 24),
-    );
+    let difference = Math.round((date.getTime() - startDate) / (1000 * 3600 * 24));
 
     const hours = Math.floor(databaseUser.time / 3600);
     const minutes = Math.floor((databaseUser.time % 3600) / 60);
@@ -42,10 +40,10 @@ async function getTime(interaction) {
       difference = 1;
     }
 
-    const avgHours = Math.floor(databaseUser.time / 3600 / difference);
-    const avgMinutes = Math.floor((databaseUser.time % 3600) / difference / 60);
-    const avgSeconds = Math.floor((databaseUser.time / difference) % 60);
-    let avgTime = "";
+    let avgTime = (hours * 3600 + minutes*60 + seconds)/difference
+    const avgHours = Math.floor(avgTime / 3600);
+    const avgMinutes = Math.floor((avgTime % 3600) / 60);
+    const avgSeconds = Math.floor(avgTime % 60);
 
     if (avgHours === 0 && avgMinutes === 0) {
       avgTime = avgSeconds + "sec";

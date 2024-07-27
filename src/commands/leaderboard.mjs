@@ -17,9 +17,8 @@ async function getLeaderboard(interaction) {
 
     const date = new Date();
     const startDate = parseInt(process.env.START_DATE) * 1000;
-    let difference = Math.round(
-      (date.getTime() - startDate) / (1000 * 3600 * 24),
-    );
+    let difference = Math.round((date.getTime() - startDate) / (1000 * 3600 * 24));
+
     if (difference === 0) {
       difference = 1;
     }
@@ -44,18 +43,17 @@ async function getLeaderboard(interaction) {
             time = hours + "h " + minutes + "min " + seconds + "sec";
           }
 
-          const avgHours = Math.floor(user.time / 3600 / difference);
-          const avgMinutes = Math.floor((user.time % 3600) / difference / 60);
-          const avgSeconds = Math.floor((user.time / difference) % 60);
-          let avgTime = "";
+          let avgTime = (hours * 3600 + minutes*60 + seconds)/difference
+          const avgHours = Math.floor(avgTime / 3600);
+          const avgMinutes = Math.floor((avgTime % 3600) / 60);
+          const avgSeconds = Math.floor(avgTime % 60);
 
           if (avgHours === 0 && avgMinutes === 0) {
             avgTime = avgSeconds + "sec";
           } else if (avgHours === 0) {
             avgTime = avgMinutes + "min " + avgSeconds + "sec";
           } else {
-            avgTime =
-              avgHours + "h " + avgMinutes + "min " + avgSeconds + "sec";
+            avgTime = avgHours + "h " + avgMinutes + "min " + avgSeconds + "sec";
           }
 
           return {
