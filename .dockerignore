@@ -1,8 +1,0 @@
-node_modules
-LICENSE
-.gitignore
-README.md
-.eslintrc.json
-.git
-.vscode
-prisma/*.db

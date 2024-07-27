@@ -1,8 +1,4 @@
 node_modules
 .env
-.eslintrc.json
-.vscode
 prisma/*.db
-yarn.lock
-win.yml
 bun.lockb
