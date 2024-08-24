@@ -1,7 +1,8 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { getUser } from "../database.js";
 import { EmbedBuilder } from "discord.js";
 import { Logtail } from "@logtail/node";
+import { getUser } from "../database.js";
+import { timeFormatting } from "../helpers.js";
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
@@ -13,15 +14,8 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
 
 async function getLeaderboard(interaction) {
   try {
-    const users = await getUser();
-
-    const date = new Date();
-    const startDate = parseInt(process.env.START_DATE) * 1000;
-    let difference = Math.round((date.getTime() - startDate) / (1000 * 3600 * 24));
-
-    if (difference === 0) {
-      difference = 1;
-    }
+    const databaseUser = await getUser();
+    let totalTime = 0
 
     const leaderboardEmbed = new EmbedBuilder()
       .setColor("#0099ff")
@@ -29,38 +23,17 @@ async function getLeaderboard(interaction) {
       .setThumbnail(interaction.guild.iconURL())
       .setTimestamp()
       .addFields(
-        users.map((user, index) => {
-          const hours = Math.floor(user.time / 3600);
-          const minutes = Math.floor((user.time % 3600) / 60);
-          const seconds = Math.floor(user.time % 60);
-          let time = "";
-
-          if (minutes === 0 && hours === 0) {
-            time = seconds + "sec";
-          } else if (hours === 0) {
-            time = minutes + "min " + seconds + "sec";
-          } else {
-            time = hours + "h " + minutes + "min " + seconds + "sec";
-          }
-
-          let avgTime = (hours * 3600 + minutes*60 + seconds)/difference
-          const avgHours = Math.floor(avgTime / 3600);
-          const avgMinutes = Math.floor((avgTime % 3600) / 60);
-          const avgSeconds = Math.floor(avgTime % 60);
-
-          if (avgHours === 0 && avgMinutes === 0) {
-            avgTime = avgSeconds + "sec";
-          } else if (avgHours === 0) {
-            avgTime = avgMinutes + "min " + avgSeconds + "sec";
-          } else {
-            avgTime = avgHours + "h " + avgMinutes + "min " + avgSeconds + "sec";
-          }
-
+        databaseUser.map((user, index) => {
+          let formattedInfos = timeFormatting(user.time)
+          totalTime += user.time
           return {
             name: `${index + 1}. ${user.discordname}`,
-            value: time + " (" + avgTime + "/day)",
+            value: `${formattedInfos.formattedTime} (${formattedInfos.avgTime}/day`,
           };
-        }),
+        }).concat([{
+          name: "Total time spent",
+          value: `The server spent a total of ${timeFormatting(totalTime).formattedTime} in voice channels. (${timeFormatting(totalTime).avgTime}/day)`,
+        }])
       )
       .setFooter({
         text: "You need to quit the voice channel to update the time!",
@@ -82,9 +55,7 @@ async function run(interaction) {
     return;
   } else {
     await interaction.reply(response);
-    logtail.info(
-      `Leaderboard command executed by ${interaction.user.username}`,
-    );
+    logtail.info(`Leaderboard command executed by ${interaction.user.username}`,);
   }
 }
 
