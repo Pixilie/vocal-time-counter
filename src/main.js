@@ -21,7 +21,6 @@ const commands = [
 const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
 await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands, });
-logtail.info("Successfully reloaded application (/) commands.");
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);

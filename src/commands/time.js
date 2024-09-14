@@ -20,7 +20,7 @@ async function getTime(interaction) {
     const databaseUser = await getUser(interaction.guild.id, interaction.user.username);
 
     if (databaseUser === null) {
-      return "You have not joined any voice channels yet!";
+      return { state: 200, response: "You never joined a voice channel before therefore VTC doesn't have any data to show you." };
     }
 
     const lastJoined = new Date(databaseUser.lastjoined * 1000);
@@ -66,7 +66,7 @@ async function run(interaction) {
   try {
     const response = await getTime(interaction);
     if (response.state === 200) {
-      await interaction.reply(response);
+      await interaction.reply(response.response);
     } else {
       await interaction.reply({ content: response.response, ephemeral: true, });
       logtail.error({ code: response.code, error: response.error })
