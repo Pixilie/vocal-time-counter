@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { EmbedBuilder } from "discord.js";
+import { Embed, EmbedBuilder } from "discord.js";
 import { Logtail } from "@logtail/node";
 import { getUser } from "../database.js";
 import { timeFormatting } from "../helpers.js";
@@ -10,6 +10,11 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName("time")
   .setDescription("Replies with the time you have spent in voice channels!");
 
+/**
+* Get the time spent in voice channels by a user
+* @param {Interaction} - The interaction object
+* @returns {Embed} - The embed object
+*/
 async function getTime(interaction) {
   try {
     const discordUser = interaction.user.username;
@@ -51,8 +56,13 @@ async function getTime(interaction) {
   }
 }
 
+/**
+* Run the time command
+* @param {Interaction} - The interaction object
+* @returns {Interaction.reply} - Reply to the user's request
+*/
 async function run(interaction) {
-  const response = await getTime(interaction);
+  const response = getTime(interaction);
   if (response === null) {
     await interaction.reply({
       content: "There was an error while executing this command!",
@@ -61,7 +71,6 @@ async function run(interaction) {
     return;
   } else {
     await interaction.reply(response);
-    logtail.info(`Time command executed by ${interaction.user.username}`);
   }
 }
 

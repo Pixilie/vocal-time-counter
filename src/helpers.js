@@ -3,11 +3,15 @@ import { Logtail } from "@logtail/node";
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
+
+/**
+* Track when a user leaves the voice channel
+* @param {Object} oldState - The old state of the user
+*/
 async function onLeft(oldState) {
   try {
     const discordUser = oldState.member.user.username;
     const lastLeft = new Date().getTime() / 1000;
-    logtail.info(`${discordUser} left`);
 
     const databaseUser = await getUser(discordUser);
     const time = databaseUser.time + (lastLeft - databaseUser.lastjoined);
@@ -17,11 +21,14 @@ async function onLeft(oldState) {
   }
 }
 
+/**
+* Track when a user joins the voice channel
+* @param {Object} newState - The new state of the user
+*/
 async function onJoin(newState) {
   try {
     const discordUser = newState.member.user.username;
     const lastJoined = new Date().getTime() / 1000;
-    logtail.info(`${discordUser} joined`);
 
     const databaseUser = await getUser(discordUser);
     if (databaseUser === null) {
@@ -34,9 +41,14 @@ async function onJoin(newState) {
   }
 }
 
+/**
+* Track when a user mutes or deafens themselves or gets muted or deafened by the server
+* @param {Object} newState - The new state of the user
+* @param {Object} oldState - The old state of the user
+*/
 async function onMuteDeafen(newState, oldState) {
   try {
-    if (newState.serverMute ||newState.serverDeafen ||newState.selfMute ||newState.selfDeafen) {
+    if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
 
       const discordUser = newState.member.user.username;
       const lastLeft = new Date().getTime() / 1000;
@@ -44,21 +56,24 @@ async function onMuteDeafen(newState, oldState) {
       const time = databaseUser.time + (lastLeft - databaseUser.lastjoined);
 
       await updateUser(discordUser, lastLeft, time);
-      logtail.info(`${discordUser} muted or deafened`);
 
-    } else if (oldState.serverMute ||oldState.serverDeafen ||oldState.selfMute ||oldState.selfDeafen) {
+    } else if (oldState.serverMute || oldState.serverDeafen || oldState.selfMute || oldState.selfDeafen) {
 
       const discordUser = oldState.member.user.username;
       const lastJoined = new Date().getTime() / 1000;
 
       await updateUser(discordUser, lastJoined);
-      logtail.info(`${discordUser} unmuted or undeafened`);
     }
   } catch (error) {
     logtail.error(error);
   }
 }
 
+/**
+* Format the time in hours, minutes, and seconds
+* @param {Number} unformattedTime - The time in seconds
+* @returns {Object} - The formatted time and the average time
+*/
 function timeFormatting(unformattedTime) {
   const date = new Date();
   const startDate = parseInt(process.env.START_DATE) * 1000;

@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { EmbedBuilder } from "discord.js";
+import { Embed, EmbedBuilder } from "discord.js";
 import { Logtail } from "@logtail/node";
 import { getUser } from "../database.js";
 import { timeFormatting } from "../helpers.js";
@@ -12,6 +12,11 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
     "Replies with the leaderboard of the time spent in voice channels!",
   );
 
+/**
+* Fetch server leaderboard
+* @param {Interaction} interaction - The interection object
+* @returns {Embed} - The embed object
+*/
 async function getLeaderboard(interaction) {
   try {
     const databaseUser = await getUser();
@@ -45,8 +50,13 @@ async function getLeaderboard(interaction) {
   }
 }
 
+/**
+* Run /leaderboard command
+* @param {Interaction} - The interaction object
+* @returns {Interaction.reply} - Reply to the user's request
+*/
 async function run(interaction) {
-  const response = await getLeaderboard(interaction);
+  const response = getLeaderboard(interaction);
   if (response == null) {
     await interaction.reply({
       content: "There was an error while executing this command!",
@@ -55,7 +65,6 @@ async function run(interaction) {
     return;
   } else {
     await interaction.reply(response);
-    logtail.info(`Leaderboard command executed by ${interaction.user.username}`,);
   }
 }
 
