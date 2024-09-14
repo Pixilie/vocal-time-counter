@@ -45,7 +45,7 @@ async function getLeaderboard(interaction) {
       });
     return { state: 200, embeds: [leaderboardEmbed] };
   } catch (error) {
-    return { state: 400, response: `There was an error while executing the command, please contact @pixilie with this code: ${Date.now()} `, error: error, code: Date.now() }
+    return { state: 400, content: `There was an error while executing the command, please contact @pixilie with this code: ${Date.now()} `, error: error, code: Date.now() }
   }
 }
 
@@ -60,7 +60,7 @@ async function run(interaction) {
     if (response.state === 200) {
       await interaction.reply(response);
     } else {
-      await interaction.reply({ content: response.response, ephemeral: true, });
+      await interaction.reply({ content: response.content, ephemeral: true, });
       logtail.error({ code: response.code, error: response.error })
     }
   } catch (error) {
