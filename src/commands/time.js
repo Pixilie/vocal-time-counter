@@ -18,12 +18,13 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
 async function getTime(interaction) {
   try {
     const databaseUser = await getUser(interaction.guild.id, interaction.user.username);
-    const lastJoined = new Date(databaseUser.lastjoined * 1000);
-    let joinedDate = interaction.guild.joinedTimestamp
 
     if (databaseUser === null) {
       return "You have not joined any voice channels yet!";
     }
+
+    const lastJoined = new Date(databaseUser.lastjoined * 1000);
+    let joinedDate = interaction.guild.joinedTimestamp
 
     let formattedInfos = timeFormatting(databaseUser.time, joinedDate)
 
