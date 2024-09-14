@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Guild, REST, Routes } from "discord.js";
+import { REST, Routes } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { Logtail } from "@logtail/node";
 import { onLeft, onJoin, onMuteDeafen } from "./helpers.js";
@@ -20,17 +20,8 @@ const commands = [
 ].map((command) => command.toJSON());
 const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
-try {
-  console.log("Started refreshing application (/) commands.");
-  logtail.info("Started refreshing application (/) commands.");
-  await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
-    body: commands,
-  });
-  console.log("Successfully reloaded application (/) commands.");
-  logtail.info("Successfully reloaded application (/) commands.");
-} catch (error) {
-  logtail.error(error);
-}
+await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands, });
+logtail.info("Successfully reloaded application (/) commands.");
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -61,12 +52,7 @@ client.on("interactionCreate", async (interaction) => {
 client.on("voiceStateUpdate", (oldState, newState) => {
   if (newState.channelId === null) {
     if (oldState.channelId !== oldState.guild.afkChannelId) {
-      if (
-        newState.serverMute ||
-        newState.serverDeafen ||
-        newState.selfMute ||
-        newState.selfDeafen
-      ) {
+      if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
         return;
       } else {
         onLeft(oldState);
@@ -76,12 +62,7 @@ client.on("voiceStateUpdate", (oldState, newState) => {
     }
   } else if (oldState.channelId === null) {
     if (newState.channelId !== newState.guild.afkChannelId) {
-      if (
-        newState.serverMute ||
-        newState.serverDeafen ||
-        newState.selfMute ||
-        newState.selfDeafen
-      ) {
+      if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
         return;
       } else {
         onJoin(newState);
@@ -96,12 +77,7 @@ client.on("voiceStateUpdate", (oldState, newState) => {
       } else {
         return;
       }
-    } else if (
-      oldState.serverDeaf !== newState.serverDeaf ||
-      oldState.serverMute !== newState.serverMute ||
-      oldState.selfDeaf !== newState.selfDeaf ||
-      oldState.selfMute !== newState.selfMute
-    ) {
+    } else if (oldState.serverDeaf !== newState.serverDeaf || oldState.serverMute !== newState.serverMute || oldState.selfDeaf !== newState.selfDeaf || oldState.selfMute !== newState.selfMute) {
       onMuteDeafen(newState, oldState);
     } else if (oldState.selfVideo !== newState.selfVideo) {
       console.log("Self video");

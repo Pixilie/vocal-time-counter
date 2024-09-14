@@ -2,15 +2,13 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { Embed, EmbedBuilder } from "discord.js";
 import { Logtail } from "@logtail/node";
 import { getUser } from "../database.js";
-import { timeFormatting } from "../helpers.js";
+import { timeFormatting, dateFormatting } from "../helpers.js";
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName("leaderboard")
-  .setDescription(
-    "Replies with the leaderboard of the time spent in voice channels!",
-  );
+  .setDescription("User classification according to the time they spent in a voice channel",);
 
 /**
 * Fetch server leaderboard
@@ -19,7 +17,8 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
 */
 async function getLeaderboard(interaction) {
   try {
-    const databaseUser = await getUser();
+    const databaseUser = await getUser(interaction.guild.id);
+    const joinedDate = interaction.guild.joinedTimestamp
     let totalTime = 0
 
     const leaderboardEmbed = new EmbedBuilder()
@@ -29,24 +28,24 @@ async function getLeaderboard(interaction) {
       .setTimestamp()
       .addFields(
         databaseUser.map((user, index) => {
-          let formattedInfos = timeFormatting(user.time)
+          let formattedInfos = timeFormatting(user.time, joinedDate)
           totalTime += user.time
           return {
             name: `${index + 1}. ${user.discordname}`,
-            value: `${formattedInfos.formattedTime} (${formattedInfos.avgTime}/day`,
+            value: `${formattedInfos.formattedTime} - ${formattedInfos.avgTime}/day`,
           };
         }).concat([{
           name: "Total time spent",
-          value: `The server spent a total of ${timeFormatting(totalTime).formattedTime} in voice channels. (${timeFormatting(totalTime).avgTime}/day)`,
+          value: `Total time since ${dateFormatting(joinedDate).formattedDate} (${dateFormatting(joinedDate).difference} day(s) ago): ${timeFormatting(totalTime, joinedDate).formattedTime} - ${timeFormatting(totalTime, joinedDate).avgTime}/day`,
         }])
       )
       .setFooter({
         text: "You need to quit the voice channel to update the time!",
         iconURL: interaction.guild.iconURL(),
       });
-    return { embeds: [leaderboardEmbed] };
+    return { state: 200, embeds: [leaderboardEmbed] };
   } catch (error) {
-    logtail.error(error);
+    return { state: 400, response: `There was an error while executing the command, please contact @pixilie with this code: ${Date.now()} `, error: error, code: Date.now() }
   }
 }
 
@@ -56,15 +55,16 @@ async function getLeaderboard(interaction) {
 * @returns {Interaction.reply} - Reply to the user's request
 */
 async function run(interaction) {
-  const response = getLeaderboard(interaction);
-  if (response == null) {
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
-    return;
-  } else {
-    await interaction.reply(response);
+  try {
+    const response = await getLeaderboard(interaction);
+    if (response.state === 200) {
+      await interaction.reply(response);
+    } else {
+      await interaction.reply({ content: response.response, ephemeral: true, });
+      logtail.error({ code: response.code, error: response.error })
+    }
+  } catch (error) {
+    logtail.error({ code: Date.now(), error: error })
   }
 }
 

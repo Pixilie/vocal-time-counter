@@ -4,29 +4,32 @@ const prisma = new PrismaClient();
 
 /**
 * Create a new user in the database
-* @param {String} discordname - The user's Discord name
-* @param {Number} timestamp - The current timestamp
-* @param {Number} time - The user's total time in the voice channel
+* @param {String} discordName - The user's Discord name
+* @param {Float} timestamp - The current timestamp
+* @param {BigInt} serverId - The serverID the user is on
+* @param {Float} time - The user's total time in the voice channel
 */
-async function newUser(discordname, lastJoined, time = 0) {
+async function newUser(discordName, lastJoined, serverId, time = 0) {
   await prisma.user.create({
-    data: { discordname: discordname, time: time, lastjoined: lastJoined, },
+    data: { discordname: discordName, time: time, lastjoined: lastJoined, server: parseInt(serverId), streamingtime: 0, mutedtime: 0, },
   });
 }
 
 /**
 * Get the user's information from the database
-* @param {String} discordname - The user's Discord name
+* @param {BigInt} serverId - The serverID the user in on
+* @param {String | null} discordName - The user's Discord name
 */
-async function getUser(discordname = null) {
-  if (discordname === null) {
+async function getUser(serverId, discordName = null) {
+  if (discordName === null) {
     const users = await prisma.user.findMany({
+      where: { server: parseInt(serverId), },
       orderBy: { time: "desc", },
     });
     return users;
   }
   const user = await prisma.user.findUnique({
-    where: { discordname: discordname, },
+    where: { user: { discordname: discordName, server: parseInt(serverId), }, },
   });
   return user;
 }
@@ -34,18 +37,19 @@ async function getUser(discordname = null) {
 /**
 * Update the user's time and lastjoined timestamp in the database
 * @param {String} discordName - The user's Discord name
-* @param {Number} timestamp - The current timestamp
-* @param {Number} time - The user's total time in the voice channel
+* @param {Float} timestamp - The current timestamp
+* @param {BigInt} serverid - The serverID the user is on
+* @param {Float | null} time - The user's total time in the voice channel
 */
-async function updateUser(discordName, timestamp, time = null) {
+async function updateUser(discordName, timestamp, serverid, time = null) {
   if (time === null) {
     await prisma.user.update({
-      where: { discordname: discordName, },
+      where: { user: { discordname: discordName, server: parseInt(serverid), }, },
       data: { lastjoined: timestamp, },
     });
   } else {
     await prisma.user.update({
-      where: { discordname: discordName, },
+      where: { user: { discordname: discordName, server: parseInt(serverid), }, },
       data: { time: time, lastjoined: timestamp, },
     });
   }
@@ -53,14 +57,17 @@ async function updateUser(discordName, timestamp, time = null) {
 
 /**
 * Delete a user from the database
-* @param {String} discordName - The user's Discord name
+* @param {BigInt} - serverid - The serverID the user in on
+* @param {String | null} discordName - The user's Discord name
 */
-async function deleteUser(discordName = null) {
+async function deleteUser(serverId, discordName = null) {
   if (discordName === null) {
-    await prisma.user.deleteMany();
+    await prisma.user.deleteMany({
+      where: { server: parseInt(serverId), }
+    });
   } else {
     await prisma.user.delete({
-      where: { discordname: discordName, },
+      where: { user: { discordname: discordName, server: parseInt(serverId), }, },
     });
   }
 }

@@ -5,7 +5,7 @@ const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName('ping')
-  .setDescription('Replies with the latency of the bot!');
+  .setDescription('Latency of the bot in ms.');
 
 /**
  * Execute the /ping command
@@ -16,8 +16,8 @@ async function run(interaction) {
   try {
     await interaction.reply(`Latency is ${Date.now() - interaction.createdTimestamp}ms.`);
   } catch (error) {
-    logtail.error(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    logtail.error({ code: Date.now(), error: error })
+    await interaction.reply({ content: `There was an error while executing the command, please contact @pixilie with this code: ${Date.now()}`, ephemeral: true });
   }
 }
 

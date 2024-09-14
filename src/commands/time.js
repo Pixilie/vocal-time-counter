@@ -2,13 +2,13 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import { Embed, EmbedBuilder } from "discord.js";
 import { Logtail } from "@logtail/node";
 import { getUser } from "../database.js";
-import { timeFormatting } from "../helpers.js";
+import { timeFormatting, dateFormatting } from "../helpers.js";
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName("time")
-  .setDescription("Replies with the time you have spent in voice channels!");
+  .setDescription("Detailed user profile.");
 
 /**
 * Get the time spent in voice channels by a user
@@ -17,28 +17,28 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
 */
 async function getTime(interaction) {
   try {
-    const discordUser = interaction.user.username;
-    const databaseUser = await getUser(discordUser);
+    const databaseUser = await getUser(interaction.guild.id, interaction.user.username);
     const lastJoined = new Date(databaseUser.lastjoined * 1000);
+    let joinedDate = interaction.guild.joinedTimestamp
 
     if (databaseUser === null) {
       return "You have not joined any voice channels yet!";
     }
 
-    let formattedInfos = timeFormatting(databaseUser.time)
+    let formattedInfos = timeFormatting(databaseUser.time, joinedDate)
 
     const timeCommand = new EmbedBuilder()
       .setColor("#0099ff")
-      .setTitle(`${discordUser}'s stats`)
+      .setTitle(`${interaction.user.username}'s stats`)
       .setTimestamp()
       .setThumbnail(interaction.user.avatarURL())
       .addFields(
         {
           name: "Time spent in voice channels",
-          value: formattedInfos.formattedTime,
+          value: `${formattedInfos.formattedTime} since the ${dateFormatting(joinedDate).formattedDate} - ${dateFormatting(joinedDate).difference} day(s) ago`,
         },
         {
-          name: `Last time ${discordUser} was in a voice channel`,
+          name: `Last time ${interaction.user.username} was in a voice channel`,
           value: `On ${lastJoined.getDate()}/${String(parseInt(lastJoined.getMonth()) + 1)}/${lastJoined.getFullYear()} at ${lastJoined.getHours()}:${lastJoined.getMinutes()}`,
         },
         {
@@ -50,9 +50,9 @@ async function getTime(interaction) {
         text: "You need to quit the voice channel to update the time!",
         iconURL: interaction.guild.iconURL(),
       });
-    return { embeds: [timeCommand] };
+    return { state: 200, embeds: [timeCommand] };
   } catch (error) {
-    logtail.error(error);
+    return { state: 400, response: `There was an error while executing the command, please contact @pixilie with this code: ${Date.now()}`, error: error, code: Date.now() }
   }
 }
 
@@ -62,15 +62,16 @@ async function getTime(interaction) {
 * @returns {Interaction.reply} - Reply to the user's request
 */
 async function run(interaction) {
-  const response = getTime(interaction);
-  if (response === null) {
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
-    return;
-  } else {
-    await interaction.reply(response);
+  try {
+    const response = await getTime(interaction);
+    if (response.state === 200) {
+      await interaction.reply(response);
+    } else {
+      await interaction.reply({ content: response.response, ephemeral: true, });
+      logtail.error({ code: response.code, error: response.error })
+    }
+  } catch (error) {
+    logtail.error({ code: Date.now(), error: error })
   }
 }
 

@@ -1,8 +1,7 @@
-import { newUser, getUser, updateUser } from "./database.js";
 import { Logtail } from "@logtail/node";
+import { newUser, getUser, updateUser } from "./database.js";
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
-
 
 /**
 * Track when a user leaves the voice channel
@@ -10,12 +9,11 @@ const logtail = new Logtail(process.env.SOURCE_TOKEN);
 */
 async function onLeft(oldState) {
   try {
-    const discordUser = oldState.member.user.username;
     const lastLeft = new Date().getTime() / 1000;
-
-    const databaseUser = await getUser(discordUser);
+    const databaseUser = await getUser(oldState.guild.id, oldState.member.user.username);
     const time = databaseUser.time + (lastLeft - databaseUser.lastjoined);
-    await updateUser(discordUser, lastLeft, time);
+
+    await updateUser(oldState.member.user.username, lastLeft, oldState.guild.id, time);
   } catch (error) {
     logtail.error(error);
   }
@@ -27,14 +25,13 @@ async function onLeft(oldState) {
 */
 async function onJoin(newState) {
   try {
-    const discordUser = newState.member.user.username;
     const lastJoined = new Date().getTime() / 1000;
+    const databaseUser = await getUser(newState.guild.id, newState.member.user.username);
 
-    const databaseUser = await getUser(discordUser);
     if (databaseUser === null) {
-      await newUser(discordUser, lastJoined);
+      await newUser(newState.member.user.username, lastJoined, newState.guild.id);
     } else {
-      await updateUser(discordUser, lastJoined);
+      await updateUser(newState.member.user.username, lastJoined, newState.guild.id);
     }
   } catch (error) {
     logtail.error(error);
@@ -50,19 +47,17 @@ async function onMuteDeafen(newState, oldState) {
   try {
     if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
 
-      const discordUser = newState.member.user.username;
       const lastLeft = new Date().getTime() / 1000;
-      const databaseUser = await getUser(discordUser);
+      const databaseUser = await getUser(newState.guild.id, newState.member.user.username);
       const time = databaseUser.time + (lastLeft - databaseUser.lastjoined);
 
-      await updateUser(discordUser, lastLeft, time);
+      await updateUser(newState.member.user.username, lastLeft, newState.guild.id, time);
 
     } else if (oldState.serverMute || oldState.serverDeafen || oldState.selfMute || oldState.selfDeafen) {
 
-      const discordUser = oldState.member.user.username;
       const lastJoined = new Date().getTime() / 1000;
 
-      await updateUser(discordUser, lastJoined);
+      await updateUser(oldState.member.user.username, lastJoined, oldState.guild.id);
     }
   } catch (error) {
     logtail.error(error);
@@ -72,12 +67,12 @@ async function onMuteDeafen(newState, oldState) {
 /**
 * Format the time in hours, minutes, and seconds
 * @param {Number} unformattedTime - The time in seconds
+* @param {Int} timestamp - Date o which VTC joined the server
 * @returns {Object} - The formatted time and the average time
 */
-function timeFormatting(unformattedTime) {
+function timeFormatting(unformattedTime, joinedDate) {
   const date = new Date();
-  const startDate = parseInt(process.env.START_DATE) * 1000;
-  let difference = Math.round((date.getTime() - startDate) / (1000 * 3600 * 24));
+  let difference = Math.round((date.getTime() - joinedDate) / (1000 * 3600 * 24));
 
   if (difference === 0) {
     difference = 1;
@@ -112,4 +107,21 @@ function timeFormatting(unformattedTime) {
   return { formattedTime, avgTime }
 }
 
-export { onLeft, onJoin, onMuteDeafen, timeFormatting };
+/**
+* Format a date in the format d/m/y
+* @param {Int} timestamp - Date on which VTC joined the server
+* @returns {Object} formattedDate & difference - The formatted date in the format d/m/y and the difference to today
+*/
+function dateFormatting(date) {
+  const formattedJoinedDate = new Date(date)
+
+  let formattedJoinedDateDay = formattedJoinedDate.getDate()
+  let formattedJoinedMonth = formattedJoinedDate.getMonth()
+  let formattedJoinedYear = formattedJoinedDate.getFullYear()
+
+  const difference = Math.round((new Date().getTime() - date) / (1000 * 3600 * 24));
+
+  return { formattedDate: `${formattedJoinedDateDay}/${formattedJoinedMonth}/${formattedJoinedYear}`, difference: difference }
+}
+
+export { onLeft, onJoin, onMuteDeafen, timeFormatting, dateFormatting };
