@@ -66,7 +66,7 @@ async function run(interaction) {
   try {
     const response = await getTime(interaction);
     if (response.state === 200) {
-      await interaction.reply(response);
+      await interaction.reply({ embeds: response.embeds, ephemeral: true });
     } else {
       await interaction.reply({ content: response.content, ephemeral: true, });
       logtail.error({ code: response.code, error: response.error })

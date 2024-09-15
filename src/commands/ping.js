@@ -14,7 +14,7 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
  */
 async function run(interaction) {
   try {
-    await interaction.reply(`Latency is ${Date.now() - interaction.createdTimestamp}ms.`);
+    await interaction.reply({ content: `Latency is ${Date.now() - interaction.createdTimestamp}ms.`, ephemeral: true });
   } catch (error) {
     logtail.error({ code: Date.now(), error: error })
     await interaction.reply({ content: `There was an error while executing the command, please contact @pixilie with this code: ${Date.now()}`, ephemeral: true });
