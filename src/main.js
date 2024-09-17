@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { REST, Routes } from "discord.js";
+import { Application, REST, Routes } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { Logtail } from "@logtail/node";
 import { onLeft, onJoin, onMuteDeafen } from "./helpers.js";
@@ -15,12 +15,20 @@ const client = new Client({
 const commands = [
   pingCommand.COMMAND_DEFINITION,
   timeCommand.COMMAND_DEFINITION,
+  timeCommand.CONTEXT_DEFINITION,
   leaderboardCommand.COMMAND_DEFINITION,
+  leaderboardCommand.CONTEXT_DEFINITION,
   deleteCommand.COMMAND_DEFINITION,
+  deleteCommand.CONTEXT_DEFINITION,
 ].map((command) => command.toJSON());
 const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
-await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands, });
+if (process.env.IS_DEV) {
+  console.log("DEVELOPER MODE ON")
+  await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.DEV_GUILD), { body: commands });
+} else {
+  await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+}
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}!`);
@@ -28,21 +36,34 @@ client.on("ready", () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
+  if (!interaction.isCommand() && !interaction.isUserContextMenuCommand()) return;
 
   switch (interaction.commandName) {
     case "ping":
       pingCommand.run(interaction);
       break;
+
     case "time":
       timeCommand.run(interaction);
       break;
+    case "time-menu":
+      timeCommand.run(interaction);
+      break;
+
     case "leaderboard":
       leaderboardCommand.run(interaction);
       break;
+    case "leaderboard-menu":
+      leaderboardCommand.run(interaction);
+      break;
+
     case "delete":
       deleteCommand.run(interaction);
       break;
+    case "delete-menu":
+      deleteCommand.run(interaction);
+      break;
+
     default:
       break;
   }

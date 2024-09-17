@@ -1,5 +1,5 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { Embed, EmbedBuilder } from "discord.js";
+import { SlashCommandBuilder, ContextMenuCommandBuilder } from '@discordjs/builders';
+import { Embed, EmbedBuilder, ApplicationCommandType } from "discord.js";
 import { Logtail } from "@logtail/node";
 import { getUser } from "../database.js";
 import { timeFormatting, dateFormatting } from "../helpers.js";
@@ -9,6 +9,10 @@ const logtail = new Logtail(process.env.SOURCE_TOKEN);
 let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName("time")
   .setDescription("Detailed user profile.");
+
+let CONTEXT_DEFINITION = new ContextMenuCommandBuilder()
+  .setName("time-menu")
+  .setType(ApplicationCommandType.User)
 
 /**
 * Get the time spent in voice channels by a user
@@ -76,4 +80,4 @@ async function run(interaction) {
   }
 }
 
-export { COMMAND_DEFINITION, run };
+export { COMMAND_DEFINITION, CONTEXT_DEFINITION, run };

@@ -1,4 +1,5 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder, ContextMenuCommandBuilder } from '@discordjs/builders';
+import { ApplicationCommandType, PermissionFlagsBits } from "discord.js"
 import { Logtail } from "@logtail/node";
 import { deleteUser } from '../database.js';
 
@@ -7,7 +8,13 @@ const logtail = new Logtail(process.env.SOURCE_TOKEN);
 let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName('delete')
   .setDescription('BE CAREFUL! - Administrator reserved command to delete a user from the database.')
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   .addUserOption(option => option.setName('user').setDescription('The user to delete').setRequired(false));
+
+let CONTEXT_DEFINITION = new ContextMenuCommandBuilder()
+  .setName("delete-menu")
+  .setType(ApplicationCommandType.User)
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 
 /**
 * Run /delete commands
@@ -16,19 +23,21 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
 */
 async function run(interaction) {
   try {
-    if (interaction.member.permissions.has('ADMINISTRATOR')) {
-      const user = interaction.options.getUser('user');
-      if (user === null) {
-        await deleteUser(interaction.guildId);
-        logtail.warn(`All users have been deleted from the database by ${interaction.user.username}!`);
-        return interaction.reply({ content: 'All users have been deleted from the database!', ephemeral: true });
-      } else {
-        await deleteUser(interaction.guildId, user.username);
-        logtail.warn(`${user.username} has been deleted from the database by ${interaction.user.username}!`);
-        return interaction.reply({ content: `${user.username} has been deleted from the database!`, ephemeral: true });
-      }
+    let user = ""
+    if (!interaction.isUserContextMenuCommand()) {
+      user = interaction.options.getUser('user');
     } else {
-      return interaction.reply({ content: 'You do not have the necessary permissions to run this command!', ephemeral: true });
+      user = interaction.targetUser;
+    }
+
+    if (user === null) {
+      await deleteUser(interaction.guildId);
+      logtail.warn(`All users have been deleted from the database by ${interaction.user.username} on the server ${interaction.guildId}`);
+      return interaction.reply({ content: 'All users have been deleted from the database!', ephemeral: true });
+    } else {
+      await deleteUser(interaction.guildId, user.username);
+      logtail.warn(`${user.username} has been deleted from the database by ${interaction.user.username} on the server ${interaction.guildId}`);
+      return interaction.reply({ content: `${user.username} has been deleted from the database!`, ephemeral: true });
     }
   } catch (error) {
     logtail.error({ code: Date.now(), error: error })
@@ -36,4 +45,4 @@ async function run(interaction) {
   }
 }
 
-export { COMMAND_DEFINITION, run }
+export { COMMAND_DEFINITION, CONTEXT_DEFINITION, run }
