@@ -11,7 +11,7 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setDescription("User classification according to the time they spent in a voice channel",);
 
 let CONTEXT_DEFINITION = new ContextMenuCommandBuilder()
-  .setName("leaderboard-menu")
+  .setName("Server leaderboard")
   .setType(ApplicationCommandType.User)
 
 /**

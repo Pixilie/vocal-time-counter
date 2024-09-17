@@ -12,7 +12,7 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
   .addUserOption(option => option.setName('user').setDescription('The user to delete').setRequired(false));
 
 let CONTEXT_DEFINITION = new ContextMenuCommandBuilder()
-  .setName("delete-menu")
+  .setName("Delete this user")
   .setType(ApplicationCommandType.User)
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 

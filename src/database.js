@@ -11,7 +11,13 @@ const prisma = new PrismaClient();
 */
 async function newUser(discordName, lastJoined, serverId, time = 0) {
   await prisma.user.create({
-    data: { discordname: discordName, time: time, lastjoined: lastJoined, server: parseInt(serverId), streamingtime: 0, mutedtime: 0, },
+    data: {
+      discordname: discordName,
+      time: time, lastjoined: lastJoined,
+      server: parseInt(serverId),
+      streamingtime: 0,
+      mutedtime: 0,
+    },
   });
 }
 

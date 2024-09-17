@@ -11,7 +11,7 @@ let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setDescription("Detailed user profile.");
 
 let CONTEXT_DEFINITION = new ContextMenuCommandBuilder()
-  .setName("time-menu")
+  .setName("User's stats")
   .setType(ApplicationCommandType.User)
 
 /**
@@ -41,6 +41,14 @@ async function getTime(interaction) {
         {
           name: "Time spent in voice channels",
           value: `${formattedInfos.formattedTime} since the ${dateFormatting(joinedDate).formattedDate} - ${dateFormatting(joinedDate).difference} day(s) ago`,
+        },
+        {
+          name: "Streaming time",
+          value: "Coming soon"
+        },
+        {
+          name: "Muted/Deafen time",
+          value: "Coming soon"
         },
         {
           name: `Last time ${interaction.user.username} was in a voice channel`,

@@ -1,7 +1,8 @@
 import "dotenv/config";
-import { Application, REST, Routes } from "discord.js";
+import { REST, Routes } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { Logtail } from "@logtail/node";
+
 import { onLeft, onJoin, onMuteDeafen } from "./helpers.js";
 import * as pingCommand from "./commands/ping.js";
 import * as timeCommand from "./commands/time.js";
@@ -46,21 +47,21 @@ client.on("interactionCreate", async (interaction) => {
     case "time":
       timeCommand.run(interaction);
       break;
-    case "time-menu":
+    case "User's stats":
       timeCommand.run(interaction);
       break;
 
     case "leaderboard":
       leaderboardCommand.run(interaction);
       break;
-    case "leaderboard-menu":
+    case "Server leaderboard":
       leaderboardCommand.run(interaction);
       break;
 
     case "delete":
       deleteCommand.run(interaction);
       break;
-    case "delete-menu":
+    case "Delete this user":
       deleteCommand.run(interaction);
       break;
 
@@ -87,16 +88,12 @@ client.on("voiceStateUpdate", (oldState, newState) => {
       } else {
         onJoin(newState);
       }
-    } else {
-      return;
-    }
+    } else { return; }
   } else {
     if (oldState.channelId !== newState.channelId) {
       if (newState.channelId === newState.guild.afkChannelId) {
         onLeft(oldState);
-      } else {
-        return;
-      }
+      } else { return; }
     } else if (oldState.serverDeaf !== newState.serverDeaf || oldState.serverMute !== newState.serverMute || oldState.selfDeaf !== newState.selfDeaf || oldState.selfMute !== newState.selfMute) {
       onMuteDeafen(newState, oldState);
     } else if (oldState.selfVideo !== newState.selfVideo) {
