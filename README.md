@@ -19,10 +19,11 @@ It's very easy, there are two different commands
 Don't forget to add a .env file at the root of the project.
 The .env file should look like this:
 ```env
-TOKEN=your_bot_token
-CLIENT_ID=your_bot_id
-START_DATE=timestamp_when_the_bot_was_added_to_your_server # Use to calculate the average time spent in voice channels
-SOURCE_TOKEN=logtail_key
+TOKEN= (bot key)
+CLIENT_ID= (Bot id)
+SOURCE_TOKEN= (Logtail key)
+IS_DEV= False | True (if you want the log to be redirected in your console)
+DEV_GUILD= (The guild where you want to locally register /commands => Faster for dev and no need to refresh discord)
 ```
 - Install bun
 - Run ``bun install``
