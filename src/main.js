@@ -1,15 +1,12 @@
 import "dotenv/config";
 import { REST, Routes } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
-import { Logtail } from "@logtail/node";
-
-import { onLeft, onJoin, onMuteDeafen } from "./helpers.js";
+import { stopActivity, startActivity, Logging } from "./helpers.js";
 import * as pingCommand from "./commands/ping.js";
 import * as timeCommand from "./commands/time.js";
 import * as leaderboardCommand from "./commands/leaderboard.js";
 import * as deleteCommand from "./commands/delete.js";
 
-const logtail = new Logtail(process.env.SOURCE_TOKEN);
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
@@ -25,19 +22,27 @@ const commands = [
 const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
 if (process.env.IS_DEV) {
-  console.log("DEVELOPER MODE ON")
-  await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.DEV_GUILD), { body: commands });
+  console.log("DEVELOPER MODE ON");
+  await rest.put(
+    Routes.applicationGuildCommands(
+      process.env.CLIENT_ID,
+      process.env.DEV_GUILD,
+    ),
+    { body: commands },
+  );
 } else {
-  await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+  await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
+    body: commands,
+  });
 }
 
 client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-  logtail.info(`Logged in as ${client.user.tag}!`);
+  Logging.info(`Logged in as ${client.user.tag}!`);
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand() && !interaction.isUserContextMenuCommand()) return;
+  if (!interaction.isCommand() && !interaction.isUserContextMenuCommand())
+    return;
 
   switch (interaction.commandName) {
     case "ping":
@@ -70,40 +75,55 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
+let voiceIsMuteOrDeaf = (state) =>
+  state.selfMute || state.selfDeafen || state.serverMute || state.serverDeafen;
+
 client.on("voiceStateUpdate", (oldState, newState) => {
-  if (newState.channelId === null) {
-    if (oldState.channelId !== oldState.guild.afkChannelId) {
-      if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
-        return;
-      } else {
-        onLeft(oldState);
-      }
+  const userID = oldState.member.user.id;
+  const serverID = oldState.guild.id;
+  const username = oldState.member.user.displayName;
+
+  // Auxiliary data
+  if (oldState.selfVideo !== newState.selfVideo) {
+    if (newState.selfVideo) {
+      return;
+      // Logging.info(`User ${newState.id} started self video`);
     } else {
       return;
-    }
-  } else if (oldState.channelId === null) {
-    if (newState.channelId !== newState.guild.afkChannelId) {
-      if (newState.serverMute || newState.serverDeafen || newState.selfMute || newState.selfDeafen) {
-        return;
-      } else {
-        onJoin(newState);
-      }
-    } else { return; }
-  } else {
-    if (oldState.channelId !== newState.channelId) {
-      if (newState.channelId === newState.guild.afkChannelId) {
-        onLeft(oldState);
-      } else { return; }
-    } else if (oldState.serverDeaf !== newState.serverDeaf || oldState.serverMute !== newState.serverMute || oldState.selfDeaf !== newState.selfDeaf || oldState.selfMute !== newState.selfMute) {
-      onMuteDeafen(newState, oldState);
-    } else if (oldState.selfVideo !== newState.selfVideo) {
-      console.log("Self video");
-    } else if (oldState.streaming !== newState.streaming) {
-      console.log("Streaming");
-    } else {
-      logtail.warn("Untracked voice state change detected.");
+      // Logging.info(`User ${newState.id} stopped self video`);
     }
   }
+  if (oldState.streaming !== newState.streaming) {
+    if (newState.streaming) {
+      Logging.info(`User ${newState.id} started streaming`);
+    } else {
+      Logging.info(`User ${newState.id} stopped streaming`);
+    }
+  }
+
+  // Start activity on join channel
+  if (oldState.channelId === null && !voiceIsMuteOrDeaf(newState)) {
+    startActivity(userID, username, serverID);
+    return;
+  }
+
+  // Stop activity on leave channel or muting/deafening
+  if (newState.channelId === null) {
+    stopActivity(userID, username, serverID);
+    return;
+  }
+
+  // Start/Stop activity on user mute/deafen
+  if (voiceIsMuteOrDeaf(oldState) !== voiceIsMuteOrDeaf(newState)) {
+    if (voiceIsMuteOrDeaf(oldState)) {
+      startActivity(userID, username, serverID);
+    } else {
+      stopActivity(userID, username, serverID);
+    }
+    return;
+  }
+
+  Logging.warn("Untracked voice state change detected");
 });
 
 client.login(process.env.TOKEN);

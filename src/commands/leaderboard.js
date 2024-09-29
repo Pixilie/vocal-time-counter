@@ -1,29 +1,44 @@
-import { SlashCommandBuilder, ContextMenuCommandBuilder } from '@discordjs/builders';
-import { Embed, EmbedBuilder, ApplicationCommandType } from "discord.js";
-import { Logtail } from "@logtail/node";
+import {
+  SlashCommandBuilder,
+  ContextMenuCommandBuilder,
+} from "@discordjs/builders";
+import {
+  Embed,
+  EmbedBuilder,
+  ApplicationCommandType,
+  InteractionResponse,
+} from "discord.js";
 import { getUser } from "../database.js";
-import { timeFormatting, dateFormatting } from "../helpers.js";
-
-const logtail = new Logtail(process.env.SOURCE_TOKEN);
+import { timeFormatting, dateFormatting, Logging } from "../helpers.js";
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName("leaderboard")
-  .setDescription("User classification according to the time they spent in a voice channel",);
+  .setDescription(
+    "User classification according to the time they spent in a voice channel",
+  );
 
 let CONTEXT_DEFINITION = new ContextMenuCommandBuilder()
   .setName("Server leaderboard")
-  .setType(ApplicationCommandType.User)
+  .setType(ApplicationCommandType.User);
 
 /**
-* Fetch server leaderboard
-* @param {Interaction} interaction - The interection object
-* @returns {Embed} - The embed object
-*/
+ * Fetch server leaderboard
+ * @param {Interaction} interaction - The interection object
+ * @returns {Embed} - The embed object
+ */
 async function getLeaderboard(interaction) {
   try {
-    const databaseUser = await getUser(interaction.guild.id);
-    const joinedDate = interaction.guild.joinedTimestamp
-    let totalTime = 0
+    const databaseUsers = await getUser(interaction.guild.id);
+    const joinedDate = interaction.guild.joinedTimestamp;
+    let totalTime = 0;
+
+    if (databaseUsers.length === 0) {
+      return {
+        state: 200,
+        content:
+          "No user ever joined a voice channel in this server therefore VTC doesn't have any data to show you.",
+      };
+    }
 
     const leaderboardEmbed = new EmbedBuilder()
       .setColor("#0099ff")
@@ -31,17 +46,21 @@ async function getLeaderboard(interaction) {
       .setThumbnail(interaction.guild.iconURL())
       .setTimestamp()
       .addFields(
-        databaseUser.map((user, index) => {
-          let formattedInfos = timeFormatting(user.time, joinedDate)
-          totalTime += user.time
-          return {
-            name: `${index + 1}. ${user.discordname}`,
-            value: `${formattedInfos.formattedTime} - ${formattedInfos.avgTime}/day`,
-          };
-        }).concat([{
-          name: "Total time spent",
-          value: `Total time since ${dateFormatting(joinedDate).formattedDate} (${dateFormatting(joinedDate).difference} day(s) ago): ${timeFormatting(totalTime, joinedDate).formattedTime} - ${timeFormatting(totalTime, joinedDate).avgTime}/day`,
-        }])
+        databaseUsers
+          .map((user, index) => {
+            let formattedInfos = timeFormatting(user.TIME, joinedDate);
+            totalTime += user.TIME;
+            return {
+              name: `${index + 1}. ${user.USERNAME}`,
+              value: `${formattedInfos.formattedTime} - ${formattedInfos.avgTime}/day`,
+            };
+          })
+          .concat([
+            {
+              name: "Total time spent",
+              value: `Total time since ${dateFormatting(joinedDate).formattedDate} (${dateFormatting(joinedDate).difference} day(s) ago): ${timeFormatting(totalTime, joinedDate).formattedTime} - ${timeFormatting(totalTime, joinedDate).avgTime}/day`,
+            },
+          ]),
       )
       .setFooter({
         text: "You need to quit the voice channel to update the time!",
@@ -49,26 +68,36 @@ async function getLeaderboard(interaction) {
       });
     return { state: 200, embeds: [leaderboardEmbed] };
   } catch (error) {
-    return { state: 400, content: `There was an error while executing the command, please contact @pixilie with this code: ${Date.now()} `, error: error, code: Date.now() }
+    return {
+      state: 400,
+      content: `There was an error while executing the command, please contact an administrator with this code: ${Date.now()} `,
+      error: error,
+      code: Date.now(),
+    };
   }
 }
 
 /**
-* Run /leaderboard command
-* @param {Interaction} - The interaction object
-* @returns {Interaction.reply} - Reply to the user's request
-*/
+ * Run /leaderboard command
+ * @param {Interaction} interaction - The interaction object
+ * @returns {InteractionResponse} - Reply to the user's request
+ */
 async function run(interaction) {
   try {
     const response = await getLeaderboard(interaction);
-    if (response.state === 200) {
+    if (response.state === 200 && response.embeds != undefined) {
       await interaction.reply({ embeds: response.embeds, ephemeral: true });
+    } else if (response.state === 400) {
+      await interaction.reply({ content: response.content, ephemeral: true });
+      Logging.error({ code: response.code, error: response.error });
     } else {
-      await interaction.reply({ content: response.content, ephemeral: true, });
-      logtail.error({ code: response.code, error: response.error })
+      await interaction.reply({
+        content: response.content,
+        ephemeral: true,
+      });
     }
   } catch (error) {
-    logtail.error({ code: Date.now(), error: error })
+    Logging.error({ code: Date.now(), error: error });
   }
 }
 

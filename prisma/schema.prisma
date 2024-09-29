@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  discordname   String
-  lastjoined    Float
-  time          Float
-  server        BigInt
-  streamingtime Float
-  mutedtime     Float
+  USER_ID        String
+  USERNAME       String
+  SERVER_ID      String
+  LAST_JOINED    Float
+  TIME           Float
+  STREAMING_TIME Float
+  MUTED_TIME     Float
 
-  @@id(name: "user", [discordname, server])
+  @@id(name: "USER", [USER_ID, SERVER_ID])
 }
