@@ -18,3 +18,8 @@ model User {
 
   @@id(name: "USER", [USER_ID, SERVER_ID])
 }
+
+model Server {
+  SERVER_ID String @unique
+  DATE      Float
+}

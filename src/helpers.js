@@ -1,5 +1,6 @@
+import "dotenv/config";
 import { Logtail } from "@logtail/node";
-import { newUser, getUser, updateUser } from "./database.js";
+import { newUser, getUser, updateUser, getServer } from "./database.js";
 
 const logtail = new Logtail(process.env.SOURCE_TOKEN);
 
@@ -45,14 +46,14 @@ async function stopActivity(userID, username, serverID) {
 /**
  * Format the time in hours, minutes, and seconds
  * @param {Number} unformattedTime - The time in seconds
- * @param {Date} joinedDate - Date on which VTC joined the server
+ * @param {Float} joinedDate - Date on which VTC joined the server
  * @returns {Object} ? - The formatted time and the average time
  */
 function timeFormatting(unformattedTime, joinedDate) {
   const date = new Date().getTime();
   let difference = Math.round((date - joinedDate) / (1000 * 3600 * 24));
 
-  difference === 0 ? (difference = -1) : difference;
+  difference === 0 ? (difference = 1) : difference;
 
   const hours = Math.floor(unformattedTime / 1000 / 3600);
   const minutes = Math.floor(((unformattedTime / 1000) % 3600) / 60);
@@ -67,10 +68,12 @@ function timeFormatting(unformattedTime, joinedDate) {
     formattedTime = hours + "h " + minutes + "min " + seconds + "sec";
   }
 
-  let avgTime = (hours * 3600 + minutes * 60 + seconds) / difference;
-  const avgHours = Math.floor(avgTime / 3600);
-  const avgMinutes = Math.floor((avgTime % 3600) / 60);
-  const avgSeconds = Math.floor(avgTime % 60);
+  const avgHours = Math.floor(unformattedTime / 1000 / 3600 / difference);
+  const avgMinutes = Math.floor(
+    ((unformattedTime / 1000) % 3600) / 60 / difference,
+  );
+  const avgSeconds = Math.floor(((unformattedTime / 1000) % 60) / difference);
+  let avgTime = "";
 
   if (avgHours === 0 && avgMinutes === 0) {
     avgTime = avgSeconds + "sec";
@@ -85,7 +88,7 @@ function timeFormatting(unformattedTime, joinedDate) {
 
 /**
  * Format a date in the format d/m/y
- * @param {Int} date - Date on which VTC joined the server
+ * @param {Float} date - Date on which VTC joined the server
  * @returns {Object} ? - The formatted date in the format d/m/y and the difference to today
  */
 function dateFormatting(date) {
@@ -105,16 +108,17 @@ function dateFormatting(date) {
   };
 }
 
-const Logging = process.env.IS_DEV
-  ? {
-      error: console.error,
-      info: console.log,
-      warn: console.warn,
-    }
-  : {
-      error: logtail.error,
-      info: logtail.info,
-      warn: logtail.warn,
-    };
+const Logging =
+  process.env.IS_DEV === "True"
+    ? {
+        error: console.error,
+        info: console.log,
+        warn: console.warn,
+      }
+    : {
+        error: (msg) => logtail.error(msg),
+        info: (msg) => logtail.info(msg),
+        warn: (msg) => logtail.warn(msg),
+      };
 
 export { stopActivity, startActivity, timeFormatting, dateFormatting, Logging };

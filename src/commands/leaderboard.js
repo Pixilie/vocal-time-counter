@@ -8,7 +8,7 @@ import {
   ApplicationCommandType,
   InteractionResponse,
 } from "discord.js";
-import { getUser } from "../database.js";
+import { getUser, getServer } from "../database.js";
 import { timeFormatting, dateFormatting, Logging } from "../helpers.js";
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
@@ -29,7 +29,7 @@ let CONTEXT_DEFINITION = new ContextMenuCommandBuilder()
 async function getLeaderboard(interaction) {
   try {
     const databaseUsers = await getUser(interaction.guild.id);
-    const joinedDate = interaction.guild.joinedTimestamp;
+    const server = await getServer(interaction.guild.id);
     let totalTime = 0;
 
     if (databaseUsers.length === 0) {
@@ -48,7 +48,7 @@ async function getLeaderboard(interaction) {
       .addFields(
         databaseUsers
           .map((user, index) => {
-            let formattedInfos = timeFormatting(user.TIME, joinedDate);
+            let formattedInfos = timeFormatting(user.TIME, server.DATE);
             totalTime += user.TIME;
             return {
               name: `${index + 1}. ${user.USERNAME}`,
@@ -58,7 +58,7 @@ async function getLeaderboard(interaction) {
           .concat([
             {
               name: "Total time spent",
-              value: `Total time since ${dateFormatting(joinedDate).formattedDate} (${dateFormatting(joinedDate).difference} day(s) ago): ${timeFormatting(totalTime, joinedDate).formattedTime} - ${timeFormatting(totalTime, joinedDate).avgTime}/day`,
+              value: `Total time since ${dateFormatting(server.DATE).formattedDate} (${dateFormatting(server.DATE).difference} day(s) ago): ${timeFormatting(totalTime, server.DATE).formattedTime} - ${timeFormatting(totalTime, server.DATE).avgTime}/day`,
             },
           ]),
       )

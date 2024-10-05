@@ -8,7 +8,7 @@ import {
   ApplicationCommandType,
   InteractionResponse,
 } from "discord.js";
-import { getUser } from "../database.js";
+import { getUser, getServer } from "../database.js";
 import { timeFormatting, dateFormatting, Logging } from "../helpers.js";
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
@@ -51,9 +51,9 @@ async function getTime(interaction) {
     }
 
     const lastJoined = new Date(databaseUser.LAST_JOINED);
-    let joinedDate = interaction.guild.joinedTimestamp;
+    let server = await getServer(interaction.guild.id);
 
-    let formattedInfos = timeFormatting(databaseUser.TIME, joinedDate);
+    let formattedInfos = await timeFormatting(databaseUser.TIME, server.DATE);
 
     const timeCommand = new EmbedBuilder()
       .setColor("#0099ff")
@@ -63,7 +63,7 @@ async function getTime(interaction) {
       .addFields(
         {
           name: "Time spent in voice channels",
-          value: `${formattedInfos.formattedTime} since the ${dateFormatting(joinedDate).formattedDate} - ${dateFormatting(joinedDate).difference} day(s) ago`,
+          value: `${formattedInfos.formattedTime} since the ${dateFormatting(server.DATE).formattedDate} - ${dateFormatting(server.DATE).difference} day(s) ago`,
         },
         {
           name: "Streaming time",

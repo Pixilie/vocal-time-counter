@@ -1,11 +1,13 @@
 import "dotenv/config";
 import { REST, Routes } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
+
 import { stopActivity, startActivity, Logging } from "./helpers.js";
 import * as pingCommand from "./commands/ping.js";
 import * as timeCommand from "./commands/time.js";
 import * as leaderboardCommand from "./commands/leaderboard.js";
 import * as deleteCommand from "./commands/delete.js";
+import * as registerCommand from "./commands/register.js";
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
@@ -18,10 +20,11 @@ const commands = [
   leaderboardCommand.CONTEXT_DEFINITION,
   deleteCommand.COMMAND_DEFINITION,
   deleteCommand.CONTEXT_DEFINITION,
+  registerCommand.COMMAND_DEFINITION,
 ].map((command) => command.toJSON());
 const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
-if (process.env.IS_DEV) {
+if (process.env.IS_DEV === "True") {
   console.log("DEVELOPER MODE ON");
   await rest.put(
     Routes.applicationGuildCommands(
@@ -70,6 +73,10 @@ client.on("interactionCreate", async (interaction) => {
       deleteCommand.run(interaction);
       break;
 
+    case "register":
+      registerCommand.run(interaction);
+      break;
+
     default:
       break;
   }
@@ -86,11 +93,9 @@ client.on("voiceStateUpdate", (oldState, newState) => {
   // Auxiliary data
   if (oldState.selfVideo !== newState.selfVideo) {
     if (newState.selfVideo) {
-      return;
-      // Logging.info(`User ${newState.id} started self video`);
+      Logging.info(`User ${newState.id} started self video`);
     } else {
-      return;
-      // Logging.info(`User ${newState.id} stopped self video`);
+      Logging.info(`User ${newState.id} stopped self video`);
     }
   }
   if (oldState.streaming !== newState.streaming) {

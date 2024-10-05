@@ -28,6 +28,7 @@ async function newUser(userID, username, serverID, lastJoined) {
  * Get the user's information from the database
  * @param {String} serverID - The serverID the user in on
  * @param {String | null} userID - The user's Discord ID
+ * @return {User} User data
  */
 async function getUser(serverID, userID = null) {
   if (userID === null) {
@@ -82,4 +83,50 @@ async function deleteUser(serverID, userID = null) {
   }
 }
 
-export { newUser, getUser, updateUser, deleteUser };
+/**
+ * Create a new server in the database
+ * @param {String} serverID - The serverID the user is on
+ * @param {Float} date - Date on which vtc joined the server
+ */
+async function newServer(serverID, date) {
+  await prisma.server.create({
+    data: {
+      SERVER_ID: serverID,
+      DATE: date,
+    },
+  });
+}
+
+/**
+ * Update the server joined date in the database
+ * @param {String} serverID - The serverID the user is on
+ * @param {Float} date - Date on which vtc joined the server
+ */
+async function updateServer(serverID, date) {
+  await prisma.server.update({
+    where: { SERVER_ID: serverID },
+    data: { DATE: date },
+  });
+}
+
+/**
+ * Get the server's information from the database
+ * @param {String} serverID - The serverID
+ * @returns {Server} Data on the requested server
+ */
+async function getServer(serverID) {
+  const server = await prisma.server.findUnique({
+    where: { SERVER_ID: serverID },
+  });
+  return server;
+}
+
+export {
+  newUser,
+  getUser,
+  updateUser,
+  deleteUser,
+  getServer,
+  updateServer,
+  newServer,
+};

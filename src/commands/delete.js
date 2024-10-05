@@ -8,7 +8,7 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 import { Logging } from "../helpers.js";
-import { deleteUser } from "../database.js";
+import { deleteUser, updateServer } from "../database.js";
 
 let COMMAND_DEFINITION = new SlashCommandBuilder()
   .setName("delete")
@@ -41,6 +41,8 @@ async function run(interaction) {
 
     if (user === null) {
       await deleteUser(interaction.guildId);
+      await updateServer(interaction.guildId, new Date().getTime());
+
       Logging.warn(
         `All users have been deleted from the database by ${interaction.user.username} on the server ${interaction.guildId}`,
       );
