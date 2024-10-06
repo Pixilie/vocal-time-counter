@@ -4,7 +4,7 @@
 Introducing Vocal Time Counter, your trusty Discord companion for tracking your time spent in voice channels! This versatile bot keeps a close eye on your activity, meticulously logging every minute you spend engaged in voice conversations. Whether you're coordinating with friends or collaborating with colleagues, Vocal Time Counter ensures you stay informed about your Discord voice channel usage.
 
 ## Informations
-The bot may still have some bugs. If you have any suggestions or would like to report a bug, you can contact me through Discord (my tag is @pixilie) or by email at pixilietv@gmail.com.
+The bot may still have some bugs. If you have any suggestions or would like to report a bug, you can contact me through Discord (my tag is ``@pixilie``) or by email at pixilietv@gmail.com.
 
 ## How to use it ?
 It's very easy, there are two different commands
