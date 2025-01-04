@@ -12,6 +12,7 @@ import * as registerCommand from "./commands/register.js";
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
+
 const commands = [
   pingCommand.COMMAND_DEFINITION,
   timeCommand.COMMAND_DEFINITION,
